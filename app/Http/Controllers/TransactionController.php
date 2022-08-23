@@ -37,17 +37,18 @@ class TransactionController extends Controller
     */
    public function store(Request $request)
    {
+      // pengecekan validator
       $validator = Validator::make($request->all(), [
          'title' => ['required'],
          'amount' => ['required', 'numeric'],
          'type' => ['required', 'in:expense,revenue'] //pada :in tidak boleh ada spacing, jika ada spacing akan error
       ]);
 
-      // jika salah akan menampilkan pesan errornya
+      // jika tidak valid maka akan menampilkan pesan errornya
       if ($validator->fails()) {
          return response()->json($validator->errors(), Response::HTTP_UNPROCESSABLE_ENTITY);
       }
-      // jika berhasil
+      // jika valid datanya
       try {
          // simpan data
          $transaction = Transaction::create($request->all()); //mengambil semua data request
@@ -87,7 +88,37 @@ class TransactionController extends Controller
     */
    public function update(Request $request, $id)
    {
-      //
+      $transaction = Transaction::findOrFail($id);
+
+      // proses validasi
+      $validator = Validator::make($request->all(), [
+         'title' => ['required'],
+         'amount' => ['required', 'numeric'],
+         'type' => ['required', 'in:expense,revenue'] //pada :in tidak boleh ada spacing, jika ada spacing akan error
+      ]);
+
+      // jika tidak valid maka akan menampilkan pesan errornya
+      if ($validator->fails()) {
+         return response()->json($validator->errors(), Response::HTTP_UNPROCESSABLE_ENTITY);
+      }
+      // jika berhasil
+      try {
+         // update data
+         $transaction->update($request->all()); //melakukan update semua data dari request
+         $response = [
+            'message' => 'Transaction Updated!',
+            'data' => $transaction
+         ];
+
+         return response()->json($response, Response::HTTP_OK);
+         //mengirim response dengan data json dan membuat statusnya HTTP OK
+      } catch (QueryException $e) {
+         //jika gagal
+         return response()->json([
+            // menampilkan pesan error berserta errornya
+            'message' => 'Failed' . $e->errorInfo
+         ]);
+      }
    }
 
    /**
