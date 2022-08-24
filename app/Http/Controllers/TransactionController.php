@@ -7,6 +7,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response as FacadesResponse;
 use Illuminate\Support\Facades\Validator;
+use PhpParser\Node\Stmt\TryCatch;
 use Symfony\Component\HttpFoundation\Response;
 
 class TransactionController extends Controller
@@ -135,6 +136,21 @@ class TransactionController extends Controller
     */
    public function destroy($id)
    {
-      //
+      $transaction = Transaction::findOrFail($id);
+      // jika datanya ada
+      try {
+         // hapus datanya
+         $transaction->delete();
+         $response = [
+            'message' => 'Transaction deleted'
+         ];
+
+         return response()->json($response, Response::HTTP_OK);
+      } catch (QueryException $e) {
+         //jika gagal kembalikan pesan
+         return response()->json([
+            'message' => 'Failed' . $e->errorInfo
+         ]);
+      }
    }
 }
